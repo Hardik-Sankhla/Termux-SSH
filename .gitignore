@@ -1,0 +1,18 @@
+# Logs and runtime files
+termux-ssh-logs/
+.termux-ssh-logs/
+
+# SSH keys (never commit private keys)
+*.key
+id_ed25519
+id_rsa
+termux_key
+
+# OS files
+.DS_Store
+thumbs.db
+
+# Editor state
+*.swp
+*.swo
+.vscode/
