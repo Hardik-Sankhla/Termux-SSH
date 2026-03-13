@@ -25,14 +25,22 @@ cd Termux-SSH
 2. On your Termux device (mobile):
 
 ```bash
+# The `termux-setup.sh` script will install OpenSSH and helpful network tools
+# (iproute2, inetutils, termux-api) so the script can detect your phone IP
+# and keep Termux awake. The script will NOT create client private keys.
 chmod +x termux-setup.sh
 ./termux-setup.sh
-# Termux is ready to accept public keys. On your laptop generate a keypair if you don't have one:
-#   ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
-# Then copy the laptop public key to Termux (replace <termux-user> and <ip>):
-#   scp -P 8022 ~/.ssh/id_ed25519.pub <termux-user>@<ip>:/tmp/termux_key.pub
-#   ssh -p 8022 <termux-user>@<ip> 'mkdir -p ~/.ssh && cat /tmp/termux_key.pub >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && rm /tmp/termux_key.pub'
 ```
+
+If the script prints Local IP as (unknown), install the helper packages manually and re-run:
+
+```bash
+pkg update -y
+pkg install -y iproute2 inetutils termux-api
+./termux-setup.sh
+```
+
+After `termux-setup.sh` completes, follow the laptop-side steps below to generate a key on your laptop and copy the laptop public key to Termux (recommended).
 
 3. On your laptop:
 

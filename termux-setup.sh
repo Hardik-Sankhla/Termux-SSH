@@ -12,6 +12,10 @@ fi
 mkdir -p "$HOME/.ssh"
 chmod 700 "$HOME/.ssh"
 
+# Ensure helper/network tools are available so scripts can detect the IP and status
+echo "Installing helper packages (iproute2, inetutils, termux-api) if missing..."
+pkg install -y iproute2 inetutils termux-api >/dev/null 2>&1 || true
+
 # SECURITY: Do NOT generate client private keys on the Termux device for
 # the purpose of connecting from your laptop. Best practice is to generate
 # an SSH keypair on the laptop (client) and copy the laptop's PUBLIC key
@@ -38,18 +42,27 @@ if [ "${1:-}" = "--enable-watcher" ]; then
   fi
 fi
 
-IP=$(ip -o -4 addr show | awk '/scope global/ {print $4}' | head -n1 | cut -d/ -f1 || true)
+# Determine local IP (use ip, fallback to ifconfig)
+IP=""
+if command -v ip >/dev/null 2>&1; then
+  IP=$(ip -o -4 addr show | awk '/scope global/ {print $4}' | head -n1 | cut -d/ -f1 || true)
+elif command -v ifconfig >/dev/null 2>&1; then
+  IP=$(ifconfig | awk '/inet / && $2 != "127.0.0.1" {print $2; exit}' || true)
+fi
 
 echo
 echo "✅ Done. Connection info:" 
 echo "- User: $(whoami)"
 echo "- Port: 8022"
 echo "- Local IP: ${IP:-(unknown)}"
-echo "- Public key path: $HOME/.ssh/id_ed25519.pub"
 echo
-echo "To connect from your laptop:" 
-echo "  1) Copy the public key: cat $HOME/.ssh/id_ed25519.pub"
-echo "  2) On laptop save it as ~/.ssh/termux_key.pub and then run:"
-echo "     ssh -p 8022 <termux-user>@<ip> -i ~/.ssh/termux_key"
+echo "IMPORTANT: generate an SSH keypair on your LAPTOP (do NOT generate private keys on the phone)."
+echo "Example (on laptop): ssh-keygen -t ed25519 -f ~/.ssh/termux_client_id -N \"\" -C \"termux-client@$(hostname)\""
+echo
+echo "Copy the laptop public key to this device (replace <termux-user> and <ip>):"
+echo "  scp -P 8022 ~/.ssh/termux_client_id.pub <termux-user>@${IP}:/tmp/termux_key.pub"
+echo "  ssh -p 8022 <termux-user>@${IP} 'mkdir -p ~/.ssh && cat /tmp/termux_key.pub >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && rm /tmp/termux_key.pub'"
+echo
+echo "Then connect from laptop: ssh -i ~/.ssh/termux_client_id -p 8022 <termux-user>@${IP}"
 
 exit 0
