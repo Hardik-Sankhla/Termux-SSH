@@ -1,0 +1,9 @@
+%%{init: {"theme":"base","themeVariables":{}}}%%
+flowchart LR
+  Laptop["Laptop (client)"] -->|SSH (port 8022)| Termux["Termux (Android device)"]
+  subgraph Security
+    LaptopKey[("Laptop private key\n(~/.ssh/termux_client_id)")]
+    TermuxAuth[("Termux authorized_keys\n(~/.ssh/authorized_keys)")]
+  end
+  LaptopKey -. only public ->|copy pubkey| TermuxAuth
+  note right of Termux: One-way connection: laptop initiates SSH
