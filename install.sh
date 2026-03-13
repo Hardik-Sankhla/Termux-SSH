@@ -9,6 +9,7 @@ set -euo pipefail
 
 MODE="${1:-auto}"
 ARG2="${2:-}"
+ENABLE_AUTOSTART=0
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 is_termux() {
@@ -30,6 +31,10 @@ if [ "$MODE" = "termux" ]; then
   if [ "${2:-}" = "--enable-watcher" ] || [ "${ARG2}" = "--enable-watcher" ]; then
     nohup "$REPO_DIR/termux-watcher.sh" >/dev/null 2>&1 &
     echo "Watcher started (nohup)"
+  fi
+  if [ "${2:-}" = "--enable-autostart" ] || [ "${ARG2}" = "--enable-autostart" ]; then
+    echo "Installing Termux:Boot autostart entry"
+    "$REPO_DIR/install-termux-boot.sh"
   fi
   echo "Done. Run: cat ~/.ssh/id_ed25519.pub and copy the output to your laptop as ~/.ssh/termux_key.pub"
   exit 0
@@ -53,6 +58,11 @@ if [ "$MODE" = "laptop" ]; then
     fi
   else
     echo "No pubkey provided. Copy Termux public key to ~/.ssh/termux_key and then run connect-termux.sh"
+  fi
+
+  if [ "${3:-}" = "--enable-autostart" ]; then
+    echo "Attempting to install systemd autostart (requires sudo)."
+    sudo "$REPO_DIR/install-systemd.sh" || echo "systemd install failed or not available"
   fi
 
   echo "Done. Use ./connect-termux.sh <termux-user> ~/.ssh/termux_key 8022 <hostname> to connect."
