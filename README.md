@@ -209,3 +209,96 @@ Examples:
 ```
 
 A simple architecture diagram is available in `DIAGRAM.mmd` (Mermaid). You can preview it in supported viewers or on GitHub.
+
+**Guided setup & test (one-way laptop → Termux)**
+
+Follow these steps exactly to provision a secure, one-way connection where your laptop (client) connects to Termux (server). Run the laptop commands on your laptop, Termux commands on the Android device.
+
+1) Generate a dedicated laptop key (if you haven't already):
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/termux_client_id -N "" -C "termux-client@$(hostname)"
+chmod 600 ~/.ssh/termux_client_id
+```
+
+2) Prepare Termux (install openssh and start sshd):
+
+```bash
+# on Termux
+cd ~/Termux-SSH
+chmod +x termux-setup.sh
+./termux-setup.sh
+# optionally enable background watcher
+./termux-setup.sh --enable-watcher
+```
+
+3) Copy your laptop public key to the phone (choose one):
+
+- Network copy (recommended):
+
+```bash
+# from laptop (replace <user> and <ip>)
+scp -P 8022 ~/.ssh/termux_client_id.pub <termux-user>@<termux-ip>:/tmp/termux_key.pub
+ssh -p 8022 <termux-user>@<termux-ip> 'mkdir -p ~/.ssh && cat /tmp/termux_key.pub >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && rm /tmp/termux_key.pub'
+```
+
+- Or manual paste on Termux (if no network):
+
+```bash
+# on laptop
+cat ~/.ssh/termux_client_id.pub
+# on Termux (paste contents)
+mkdir -p ~/.ssh
+echo 'PASTED_PUBLIC_KEY' >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+
+4) Verify connection from laptop (quick test):
+
+```bash
+# direct
+ssh -i ~/.ssh/termux_client_id -p 8022 <termux-user>@<termux-ip>
+
+# or using helper
+./connect-termux.sh <termux-user> ~/.ssh/termux_client_id 8022 <termux-ip-or-hostname>
+```
+
+5) Run sanity checks and collect diagnostics if something fails:
+
+```bash
+# on Termux:
+./termux-test.sh || ./report-error.sh "termux-test failed"
+ls -la ~/termux-ssh-logs
+
+# on laptop:
+./laptop-test.sh ~/.ssh/termux_client_id || ./laptop-report.sh "laptop precheck failed"
+```
+
+6) Optional: enable autostart
+
+- On Termux (Termux:Boot app required):
+
+```bash
+./install.sh termux --enable-autostart
+```
+
+- On laptop (systemd):
+
+```bash
+sudo ./install-systemd.sh
+```
+
+7) Revoke or rotate keys
+
+- Revoke access: remove the matching public key line from `~/.ssh/authorized_keys` on Termux.
+- Rotate: generate a new client key on laptop, upload new public key to Termux, then remove the old public key.
+
+Assistant's guided setup (what I will do with you):
+
+- Verify your local environment (I can run `./laptop-test.sh` here to check SSH client and key presence).
+- Help generate a client key on the laptop (if you want me to run that locally here).
+- Provide the exact `scp`/`ssh` commands you should run to copy the public key to Termux safely.
+- Help enable autostart and verify the watcher service/logs.
+- Assist with rotating or revoking keys and debugging connection failures.
+
+When you're ready, tell me which device you're on (laptop or Termux) and which step you want to run first; I can run laptop-side commands here and guide you through the Termux-side steps interactively.
