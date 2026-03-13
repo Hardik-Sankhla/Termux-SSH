@@ -25,14 +25,11 @@ cd Termux-SSH
 2. On your Termux device (mobile):
 
 ```bash
-# The `termux-setup.sh` script will install OpenSSH and helpful network tools
-# (iproute2, inetutils, termux-api) so the script can detect your phone IP
-# and keep Termux awake. The script will NOT create client private keys.
 chmod +x termux-setup.sh
 ./termux-setup.sh
 ```
 
-If the script prints Local IP as (unknown), install the helper packages manually and re-run:
+If the script prints Local IP as `(unknown)`, install the helper packages and re-run:
 
 ```bash
 pkg update -y
@@ -40,7 +37,7 @@ pkg install -y iproute2 inetutils termux-api
 ./termux-setup.sh
 ```
 
-After `termux-setup.sh` completes, follow the laptop-side steps below to generate a key on your laptop and copy the laptop public key to Termux (recommended).
+After `termux-setup.sh` completes, copy your laptop public key to Termux (recommended).
 
 3. On your laptop:
 
@@ -195,6 +192,27 @@ Use the included helpers:
 ./install.sh laptop ~/.ssh/termux_client_id.pub  # run on laptop to install public key file
 ./update-repo.sh                        # pulls repo and restarts watcher on Termux
 ```
+
+Essential vs Optional files
+
+Keep these core (essential) scripts in daily use:
+
+- `termux-setup.sh` — prepare Termux (openssh + helpers) and start `sshd`.
+- `connect-termux.sh` — laptop connector (mDNS + nmap fallback).
+- `easy-connect.sh` — interactive laptop helper to copy public key and verify access (beginner-friendly).
+- `termux-accept-key.sh` — Termux helper to accept a pasted public key via stdin.
+- `termux-test.sh`, `report-error.sh` — health checks and diagnostics.
+- `termux-watcher.sh` — keep `sshd` running (optional background worker).
+- `install.sh`, `install-termux-boot.sh`, `install-systemd.sh` — installers for autostart helpers.
+
+Optional / advanced scripts (safe to remove if you want a minimal repo):
+
+- `harden.sh` — automated hardening (review before running; it edits `sshd_config`).
+- `easy-connect.sh` and `termux-accept-key.sh` are convenience helpers for beginners.
+- `install-precommit.sh`, CI folder — repository safety checks (recommended for public repos).
+- `quickstart.sh`, `update-repo.sh` — automation helpers.
+
+If you want a minimal set for public distribution, keep the `termux-setup.sh`, `connect-termux.sh`, `README.md`, and `termux-test.sh` files and consider moving advanced helpers into an `extras/` folder.
 
 **7) CI and local safety checks**
 
