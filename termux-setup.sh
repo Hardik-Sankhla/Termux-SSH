@@ -12,20 +12,19 @@ fi
 mkdir -p "$HOME/.ssh"
 chmod 700 "$HOME/.ssh"
 
-if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
-  echo "Generating ed25519 keypair..."
-  ssh-keygen -t ed25519 -f "$HOME/.ssh/id_ed25519" -N "" -C "termux@$(hostname)"
-else
-  echo "SSH key already exists: $HOME/.ssh/id_ed25519"
+# SECURITY: Do NOT generate client private keys on the Termux device for
+# the purpose of connecting from your laptop. Best practice is to generate
+# an SSH keypair on the laptop (client) and copy the laptop's PUBLIC key
+# into Termux's ~/.ssh/authorized_keys. This keeps the private key only
+# on the client machine.
+
+if [ ! -f "$HOME/.ssh/authorized_keys" ]; then
+  touch "$HOME/.ssh/authorized_keys"
+  chmod 600 "$HOME/.ssh/authorized_keys"
 fi
 
-touch "$HOME/.ssh/authorized_keys"
-cat "$HOME/.ssh/id_ed25519.pub" >> "$HOME/.ssh/authorized_keys"
-chmod 600 "$HOME/.ssh/authorized_keys"
-
-
 echo "Starting sshd (Termux default port: 8022)..."
-sshd
+sshd || echo "sshd failed to start — check package installation"
 
 termux-wake-lock >/dev/null 2>&1 || true
 

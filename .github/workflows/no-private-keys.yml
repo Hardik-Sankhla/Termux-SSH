@@ -1,0 +1,15 @@
+name: Prevent Private Keys
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run private key scan
+        run: |
+          chmod +x ./ci/check-no-keys.sh || true
+          ./ci/check-no-keys.sh

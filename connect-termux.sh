@@ -25,7 +25,11 @@ fi
 echo "🔎 Trying mDNS: $TARGET_HOSTNAME"
 if ping -c 1 -W 1 "$TARGET_HOSTNAME" > /dev/null 2>&1; then
   echo "Found via mDNS — connecting to $TARGET_HOSTNAME"
-  ssh -i "$KEY_FILE" -p "$PORT" "$USER@$TARGET_HOSTNAME"
+  if [ "$KEY_FILE" = "-" ]; then
+    ssh -p "$PORT" "$USER@$TARGET_HOSTNAME"
+  else
+    ssh -i "$KEY_FILE" -p "$PORT" "$USER@$TARGET_HOSTNAME"
+  fi
   exit 0
 fi
 
@@ -35,10 +39,14 @@ if command -v nmap >/dev/null 2>&1; then
   FOUND_IP=$(nmap -p "$PORT" --open -n "$CURRENT_SUBNET" -oG - | awk '/open/ {print $2; exit}')
 
     if [ -n "$FOUND_IP" ]; then
-      echo "Found Termux at IP: $FOUND_IP — connecting..."
-      ssh -i "$KEY_FILE" -p "$PORT" "$USER@$FOUND_IP"
-      exit 0
-    fi
+        echo "Found Termux at IP: $FOUND_IP — connecting..."
+        if [ "$KEY_FILE" = "-" ]; then
+          ssh -p "$PORT" "$USER@$FOUND_IP"
+        else
+          ssh -i "$KEY_FILE" -p "$PORT" "$USER@$FOUND_IP"
+        fi
+        exit 0
+      fi
 else
   echo "nmap not installed. Install nmap or run: ssh -p $PORT $USER@<ip> -i $KEY_FILE"
 fi
