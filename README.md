@@ -145,6 +145,26 @@ ssh-add ~/.ssh/termux_client_id
 ./connect-termux.sh <termux-user> - 8022 hardik-phone.local
 ```
 
+Beginners: one-command key copy helper
+
+If you prefer a single interactive helper from the laptop that attempts to copy your public key and verify access, use `easy-connect.sh`:
+
+```bash
+chmod +x easy-connect.sh
+# usage: ./easy-connect.sh [user@]host [port] [keyfile]
+./easy-connect.sh u0_a352@192.168.1.37 8022 ~/.ssh/termux_client_id
+```
+
+If automatic copy fails, the helper prints your public key so you can paste it into Termux; on the phone you can use `termux-accept-key.sh` to accept a pasted key from stdin:
+
+```bash
+# on laptop
+cat ~/.ssh/termux_client_id.pub
+
+# on Termux (paste the public key into stdin, then Ctrl-D):
+./termux-accept-key.sh < /tmp/pasted_key.pub
+```
+
 **5) Run tests & collect diagnostics**
 
 Termux health check and diagnostics (run on mobile):
